@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using IdentityDemo.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 
 namespace IdentityDemo.Controllers
 {
@@ -32,6 +35,10 @@ namespace IdentityDemo.Controllers
             return View( );
         }
 
+        [Authorize]
+        public IActionResult About( ) => View( );
+
+
         [ResponseCache( Duration = 0, Location = ResponseCacheLocation.None, NoStore = true )]
         public IActionResult Error( )
         {
@@ -56,13 +63,39 @@ namespace IdentityDemo.Controllers
                 {
                     user = new PluralSightUser
                     {
-                        ID = Guid.NewGuid( ).ToString( ),
-                        UserName = model.UserName
+                        Id = Guid.NewGuid( ).ToString( ),
+                        UserName = model.UserName                        
                     };
 
-                    var result = await _userManager.CreateAsync( user, model.Password );
+                    var _ = await _userManager.CreateAsync( user, model.Password );
                 }
                 return View( "Success" );
+            }
+            return View( );
+        }
+
+        [HttpGet]
+        public IActionResult Login( ) => View( );
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login( LoginModel model )
+        {
+            if ( ModelState.IsValid )
+            {
+                var user = await _userManager.FindByNameAsync( model.UserName );
+
+                if ( user != null &&
+                     await _userManager.CheckPasswordAsync( user, model.Password ) )
+                {
+                    var identity = new ClaimsIdentity( "Cookies" );
+                    identity.AddClaim( new Claim( ClaimTypes.NameIdentifier, user.Id ) );
+                    identity.AddClaim( new Claim( ClaimTypes.Name, user.UserName ) );
+
+                    await HttpContext.SignInAsync( "Cookies", new ClaimsPrincipal( identity ) );
+                    return RedirectToAction( "Index" );
+                }
+                ModelState.AddModelError( "", "Invalid username or password" );
             }
             return View( );
         }

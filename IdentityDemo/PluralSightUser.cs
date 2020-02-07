@@ -1,10 +1,17 @@
-﻿namespace IdentityDemo
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace IdentityDemo
 {
-    public class PluralSightUser
+    public class Organization
     {
-        public string ID { get; set; }
-        public string UserName { get; set; }
-        public string NormalizedUserName { get; set; }
-        public string PasswordHash { get; set; }
+        public string Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class PluralSightUser : IdentityUser
+    {
+        public string Locale { get; set; } = "en-GB";
+
+        public string OrganizationId { get; set; }
     }
 }

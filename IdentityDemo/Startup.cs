@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,9 +27,18 @@ namespace IdentityDemo
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices( IServiceCollection services )
         {
+            var connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=PluralSightUser;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+
+            var migrationAssembly = typeof( Startup ).GetTypeInfo( ).Assembly.GetName( ).Name;
+            services.AddDbContext<PluralSightUserDbContext>( options => options.UseSqlServer( connectionString, 
+                sql => sql.MigrationsAssembly( migrationAssembly ) ) );
+
             services.AddControllersWithViews( );            
             services.AddIdentityCore<PluralSightUser>( OptionsBuilderConfigurationExtensions => { } );
-            services.AddScoped<IUserStore<PluralSightUser>, PluralSightUserStore>( );
+            services.AddScoped<IUserStore<PluralSightUser>, UserOnlyStore<PluralSightUser, PluralSightUserDbContext>>( );
+
+            services.AddAuthentication( "Cookies" ).AddCookie( 
+                "Cookies", options => options.LoginPath = "/Home/Login"  );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -47,6 +59,7 @@ namespace IdentityDemo
 
             app.UseRouting( );
 
+            app.UseAuthentication( );
             app.UseAuthorization( );
 
             app.UseEndpoints( endpoints =>

@@ -30,7 +30,7 @@ namespace IdentityDemo
                     "Values(@id,@userName,@normalizedUserName,@passwordHash)",
                 new
                 {
-                    id = user.ID,
+                    id = user.Id,
                     userName = user.UserName,
                     normalizedUserName = user.NormalizedUserName,
                     passwordHash = user.PasswordHash
@@ -77,7 +77,7 @@ namespace IdentityDemo
 
         public Task<string> GetUserIdAsync( PluralSightUser user, CancellationToken cancellationToken )
         {
-            return Task.FromResult( user.ID );
+            return Task.FromResult( user.Id );
         }
 
         public Task<string> GetUserNameAsync( PluralSightUser user, CancellationToken cancellationToken )
@@ -120,7 +120,7 @@ namespace IdentityDemo
                 "where [Id] = @id",
                 new
                 {
-                    id = user.ID,
+                    id = user.Id,
                     userName = user.UserName,
                     normalizedUserName = user.NormalizedUserName,
                     passwordHash = user.PasswordHash
